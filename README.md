@@ -1,3 +1,3 @@
 Ailove-GenerativeIdentity
 =========================
-<img src="https://github.com/ailove-lab/Ailove-Faces/blob/master/Ailove.Lab.png?raw=true"/>
+<img src="blob/master/Ailove.Lab.png?raw=true"/>
