@@ -1,13 +1,20 @@
 package 
 {
+	import com.greensock.plugins.ColorMatrixFilterPlugin;
+	import flash.display.BitmapData;
+	import flash.display.GradientType;
 	import flash.display.Graphics;
 	import flash.display.Sprite;
 	import flash.events.*;
+	import flash.filters.ColorMatrixFilter;
 	import flash.geom.Matrix;
 	import flash.geom.Point;
+	import flash.net.FileReference;
 	import flash.text.*;
 	import flash.utils.ByteArray;
 	import com.adobe.crypto.MD5;
+	import com.adobe.images.PNGEncoder;
+	
 	
 	/**
 	 * ...
@@ -20,7 +27,23 @@ package
 		var Y:uint; 
 		var H:Array = [];
 		
-		var canvas:Sprite;
+		var file:FileReference = new FileReference();
+
+		var colors  :Array = [
+			//0xED1C24,
+			//0xF68B1F,
+			//0x00A651,
+			//0x00ABBD,
+			
+			0x3BAAF5, 
+			0x7AC93F, 
+			0xFF8F19, 
+			0xFF1825, 
+			0xFF76AB, 
+		];
+		
+		var canvas:Sprite = new Sprite;
+		var backgr:Sprite = new Sprite;
 		
 		static var PI:Number = Math.PI;
 		static var P:Number  = 1.6180339887498948482;
@@ -28,16 +51,6 @@ package
 		var input:TextField;
 		var hash :TextField;
 		
-		//var top   :Sprite = new Sprite();
-		//var bot   :Sprite = new Sprite();
-		//var lLeg  :Sprite = new Sprite();
-		//var rLeg  :Sprite = new Sprite();
-		//var lHand :Sprite = new Sprite();
-        //var rHand :Sprite = new Sprite();
-		//var lEar  :Sprite = new Sprite();
-		//var rEar  :Sprite = new Sprite();
-		//var Eyes  :Sprite = new Sprite();
-		//var Tail  :Sprite = new Sprite();
 		
 		public function Main():void 
 		{
@@ -50,23 +63,26 @@ package
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			// entry point
 			
-			canvas = new Sprite;
+			
 			X = stage.stageWidth  >> 1;
 			Y = stage.stageHeight >> 1;
+			
+			backgr.x = X;
+			backgr.y = Y;
+			addChild(backgr);
+			
 			canvas.x = X;
-			canvas.y = Y;
+			canvas.y = Y+24;
+			canvas.filters = [
+				new ColorMatrixFilter([
+				   -1.0, 0.0, 0.0, 0.0, 255.0,
+				    0.0,-1.0, 0.0, 0.0, 255.0,
+				    0.0, 0.0,-1.0, 0.0, 255.0,
+				   -1.0,-1.0,-1.0, 1.0,   0.0,
+				])
+			];
 			addChild(canvas);
-			//canvas.addChild(lLeg  );
-			//canvas.addChild(rLeg  );
-			//canvas.addChild(bot   );
-			//canvas.addChild(top   );
-			//canvas.addChild(lHand );
-			//canvas.addChild(rHand );
-			//canvas.addChild(lEar  );
-			//canvas.addChild(rEar  );
-			
-			
-			
+
 			input = new TextField();
 			input.defaultTextFormat = new TextFormat("Trebuchet MS", 24 ,0x808080,null,null,null,null,null,"center")
 			input.text       ="enter your email here";
@@ -94,6 +110,10 @@ package
 			onText();
 			
 			drawRabbit();
+			
+			canvas.addEventListener(MouseEvent.CLICK, onMouseClick);
+			backgr.addEventListener(MouseEvent.CLICK, onMouseClick);
+			
 		}
 		
 		
@@ -109,23 +129,50 @@ package
 				H.push(parseInt(h));
 			}
 			
+			drawBg();
 			drawRabbit();
+			
 
 		}
 		
+		
+		private function onMouseClick(e:MouseEvent=null):void {
+			//var M:Matrix = new Matrix;
+			//M.tx = 1110;
+			//M.ty =   24;
+			//var bd:BitmapData = logo.clone();
+			//bd.draw(stage, M);
+			//file.save(PNGEncoder.encode(bd), input.text+".png");
+			var bd:BitmapData = new BitmapData(512,512,false,0xFFFFFF);
+			bd.draw(stage);
+			file.save(PNGEncoder.encode(bd), input.text+".png");
+			
+		}
+
+		
+		private function drawBg():void {
+			
+			var g:Graphics = backgr.graphics;
+			g.clear();
+
+			g.beginFill(colors[H[0] % colors.length]);
+			g.drawCircle(0, 0 , 150);
+			
+		}
+		
 		private function drawRabbit():void {
+
 			
 			var g:Graphics = canvas.graphics;
-			g.clear();
+			g.clear()
 			
-			var max_av:Number = 0.15;
+			var max_av:Number = 0.10;
 			                    
 			var dx:Number;
 			var dy:Number;
-			var h = 0;
-			var sa:Number = 0;// H[h++] / 255.0;
-			var top:Object = { sc: 8, av: (H[h++]-128) / 128.0 * max_av, r:30, rv: -1.0, d: sa * PI/4 - PI / 2.0, v : 5 };
-			var bot:Object = { sc: 8, av: (H[h++]-128) / 128.0 * max_av, r:30, rv:  1.0, d: sa * PI/4 + PI / 2.0, v : 5 };
+			var h:uint = 0;
+			var top:Object = { sc: 8, av: (H[h++]-128) / 128.0 * max_av, r:30, rv: -1.0, d: - PI / 2.0, v : 3 };
+			var bot:Object = { sc: 8, av: (H[h++]-128) / 128.0 * max_av, r:30, rv:  1.0, d: + PI / 2.0, v : 3 };
 			
 			drawArc(g, top);	
 			drawArc(g, bot);	
@@ -165,8 +212,8 @@ package
 			var ga:Number = Math.atan2(lLeg.p.y - rLeg.p.y, lLeg.p.x - rLeg.p.x);
 			canvas.rotation = -ga*180/PI;
 			trace (ga);
-			//canvas.x = gx;
-			//canvas.y = gy;
+			//canvas.x +=gx;
+			//canvas.y +=gy;
 			
 			
 			var tail:Object = clone(bot);
@@ -202,10 +249,12 @@ package
 			
 			var lHandC:Object = clone(lHand);
 			var rHandC:Object = clone(rHand);
-			lHandC.cl  = 0xFFFFFF;
-			rHandC.cl  = 0xFFFFFF;
-			lHandC.rv *= 1.3;
-			rHandC.rv *= 1.3;
+			lHandC.cl  = 0x404040;
+			rHandC.cl  = 0x404040;
+			lHandC.r  *= 0.8;
+			rHandC.r  *= 0.8;
+			lHandC.rv *= 1.5;
+			rHandC.rv *= 1.5;
 			
 			drawArc(g, lHandC);
 			drawArc(g, rHandC);
@@ -243,7 +292,7 @@ package
 			rEye.rv =   0;
 			lEye.r  = top.r / P / P;
 			rEye.r  = top.r / P / P;
-		lEye.d -= H[h++] / 255.0 * PI / 10.0;
+		    lEye.d -= H[h++] / 255.0 * PI / 10.0;
 			rEye.d += H[h++] / 255.0 * PI / 10.0;
 			
 			var ed:Number = 1.0-(max_av - Math.abs(head.av)) / max_av;  
@@ -254,8 +303,8 @@ package
 			lEye.p.y +=(-dx/1.5 - dy + edy)* head.r / P ;
 			rEye.p.x +=(-dy/1.5 - dx + edx)* head.r / P ;
 			rEye.p.y +=( dx/1.5 - dy + edy)* head.r / P ;
-			lEye.cl = 0xFFFFFF;
-			rEye.cl = 0xFFFFFF;
+			lEye.cl = 0x404040;
+			rEye.cl = 0x404040;
 			
 			drawArc(g, lEye);
 			drawArc(g, rEye);
