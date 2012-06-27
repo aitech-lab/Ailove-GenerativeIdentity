@@ -27,16 +27,17 @@ package
 		
 		var input:TextField;
 		var hash :TextField;
-		var top   :Sprite = new Sprite();
-		var bottom:Sprite = new Sprite();
-		var lLeg  :Sprite = new Sprite();
-		var rLeg  :Sprite = new Sprite();
-		var lHand :Sprite = new Sprite();
-        var rHand :Sprite = new Sprite();
-		var lEar  :Sprite = new Sprite();
-		var rEar  :Sprite = new Sprite();
-		var Eyes  :Sprite = new Sprite();
-		var Tail  :Sprite = new Sprite();
+		
+		//var top   :Sprite = new Sprite();
+		//var bot   :Sprite = new Sprite();
+		//var lLeg  :Sprite = new Sprite();
+		//var rLeg  :Sprite = new Sprite();
+		//var lHand :Sprite = new Sprite();
+        //var rHand :Sprite = new Sprite();
+		//var lEar  :Sprite = new Sprite();
+		//var rEar  :Sprite = new Sprite();
+		//var Eyes  :Sprite = new Sprite();
+		//var Tail  :Sprite = new Sprite();
 		
 		public function Main():void 
 		{
@@ -55,14 +56,14 @@ package
 			canvas.x = X;
 			canvas.y = Y;
 			addChild(canvas);
-			canvas.addChild(lLeg  );
-			canvas.addChild(rLeg  );
-			canvas.addChild(bottom);
-			canvas.addChild(top   );
-			canvas.addChild(lHand );
-			canvas.addChild(rHand );
-			canvas.addChild(lEar );
-			canvas.addChild(rEar );
+			//canvas.addChild(lLeg  );
+			//canvas.addChild(rLeg  );
+			//canvas.addChild(bot   );
+			//canvas.addChild(top   );
+			//canvas.addChild(lHand );
+			//canvas.addChild(rHand );
+			//canvas.addChild(lEar  );
+			//canvas.addChild(rEar  );
 			
 			
 			
@@ -116,55 +117,72 @@ package
 			
 			var g:Graphics = canvas.graphics;
 			g.clear();
-			g.lineStyle(0, 0, 0.2);
 			
+			var max_av:Number = 0.15;
+			                    
 			var dx:Number;
 			var dy:Number;
 			var h = 0;
 			var sa:Number = 0;// H[h++] / 255.0;
-			var top:Object    = { sc: H[h++] % 4+6, av: (H[h++]-128) / 128.0 * 0.15, r:30, rv: -1.0, d: sa * PI/4 - PI / 2.0, v : 5 };
-			var bottom:Object = { sc: H[h++] % 4+6, av: (H[h++]-128) / 128.0 * 0.15, r:30, rv:  1.0, d: sa * PI/4 + PI / 2.0, v : 5 };
+			var top:Object = { sc: 8, av: (H[h++]-128) / 128.0 * max_av, r:30, rv: -1.0, d: sa * PI/4 - PI / 2.0, v : 5 };
+			var bot:Object = { sc: 8, av: (H[h++]-128) / 128.0 * max_av, r:30, rv:  1.0, d: sa * PI/4 + PI / 2.0, v : 5 };
 			
-			drawArc(g, top );	
-			drawArc(g, bottom );	
+			drawArc(g, top);	
+			drawArc(g, bot);	
 			
-			var lLeg:Object   = clone(bottom);
-			var rLeg:Object   = clone(bottom);
+			var lLeg:Object   = clone(bot);
+			var rLeg:Object   = clone(bot);
 			lLeg.sc = 10;
 			rLeg.sc = 10;
 			lLeg.r /=  4;
 			rLeg.r /=  4;
 			
-			dx = bottom.t.x / bottom.t.length;
-			dy = bottom.t.y / bottom.t.length;
+			dx = bot.t.x / bot.t.length;
+			dy = bot.t.y / bot.t.length;
 
-			lLeg.p.x += ( +dy ) * bottom.r / 2.0;
-			lLeg.p.y += ( -dx ) * bottom.r / 2.0;
-			rLeg.p.x += ( -dy ) * bottom.r / 2.0;
-			rLeg.p.y += ( +dx ) * bottom.r / 2.0;
+			lLeg.p.x += ( +dy ) * bot.r / 2.0;
+			lLeg.p.y += ( -dx ) * bot.r / 2.0;
+			rLeg.p.x += ( -dy ) * bot.r / 2.0;
+			rLeg.p.y += ( +dx ) * bot.r / 2.0;
 			lLeg.rv = 0.5;
 			rLeg.rv = 0.5;
-			//lLeg.av = (H[h++]-128) / 128.0 * 0.1;
-			//rLeg.av = (H[h++]-128) / 128.0 * 0.1;
-			lLeg.av *= -1;
-			rLeg.av *= -1;
-			
+			lLeg.av = Math.abs((H[h++]-128) / 128.0 * 0.1) * (top.av > 0 ? 1 : -1);
+			rLeg.av = Math.abs((H[h++]-128) / 128.0 * 0.1) * (top.av > 0 ? 1 : -1);
+			lLeg.d -= H[h++] / 255.0 * PI / 4.0;
+			rLeg.d += H[h++] / 255.0 * PI / 4.0;
+		
 			drawArc(g, lLeg);
 			drawArc(g, rLeg);
 			
-			lLeg.av = (H[h++]-128) / 128.0 * 0.1;
-			rLeg.av = (H[h++]-128) / 128.0 * 0.1;
-			lLeg.av *= -1;
-			rLeg.av *= -1;
+			lLeg.av = Math.abs((H[h++]-128) / 128.0 * 0.2) * (top.av > 0 ? -1 : 1)
+			rLeg.av = Math.abs((H[h++]-128) / 128.0 * 0.2) * (top.av > 0 ? -1 : 1)
+		
 			drawArc(g, lLeg);
 			drawArc(g, rLeg);
+			
+			var gx:Number = lLeg.p.x + rLeg.p.x;
+			var gy:Number = lLeg.p.y + rLeg.p.y;
+			var ga:Number = Math.atan2(lLeg.p.y - rLeg.p.y, lLeg.p.x - rLeg.p.x);
+			canvas.rotation = -ga*180/PI;
+			trace (ga);
+			//canvas.x = gx;
+			//canvas.y = gy;
+			
+			
+			var tail:Object = clone(bot);
+			var tb:Number = 1.0-(max_av - Math.abs(bot.av)) / max_av;  
+			tail.p.x +=+dy*(bot.r*1.2)*tb*(bot.av > 0 ? 1 : -1)
+			tail.p.y +=-dx*(bot.r*1.2)*tb*(bot.av > 0 ? 1 : -1)
+			tail.sc   = 1;
+			tail.r    = bot.r / 3.0;
+			drawArc(g, tail)
 			
 			var rHand:Object = clone(top);
 			var lHand:Object = clone(top);
-			lHand.sc =  10;
-			rHand.sc =  10;
-			lHand.r /=   4;
-			rHand.r /=   4;
+			lHand.sc =   8;
+			rHand.sc =   8;
+			lHand.r /=   3;
+			rHand.r /=   3;
 			lHand.rv = 0.5;
 			rHand.rv = 0.5;
 			lHand.av = (H[h++]-128) / 128.0 * 0.2;
@@ -182,44 +200,104 @@ package
 			lHand.av = (H[h++]-128) / 128.0 * 0.2;
 			rHand.av = (H[h++]-128) / 128.0 * 0.2;
 			
-			drawArc(g, lHand);
-			drawArc(g, rHand);
+			var lHandC:Object = clone(lHand);
+			var rHandC:Object = clone(rHand);
+			lHandC.cl  = 0xFFFFFF;
+			rHandC.cl  = 0xFFFFFF;
+			lHandC.rv *= 1.3;
+			rHandC.rv *= 1.3;
+			
+			drawArc(g, lHandC);
+			drawArc(g, rHandC);
+			                
+			drawArc(g, lHandC);
+			drawArc(g, rHandC);
 			
 			drawArc(g, lHand);
 			drawArc(g, rHand);
 			
+			drawArc(g, lHand);
+			drawArc(g, rHand);
+			
+
 			var head:Object = clone(top);
-			head.sc = 3;
-			head.r *= 2;
-			head.v  = 2;
-			head.rv =-4;
-			head.p.x += head.t.x / head.t.length * top.r * 2.0;
-			head.p.y += head.t.y / head.t.length * top.r * 2.0;
+			head.sc   = 3;
+			head.r   *= 2;
+			head.v    = 2;
+			head.rv   =-4;
+			head.p.x += dx * top.r * 2.0;
+			head.p.y += dy * top.r * 2.0;
 			drawArc(g, head);
 			
+			dx = head.t.x / head.t.length;
+			dy = head.t.y / head.t.length;
+			
+			var lEye:Object = clone(head);
+			var rEye:Object = clone(head);
+			
+			lEye.sc =   1;
+			rEye.sc =   1;
+			lEye.v  =   1;
+			rEye.v  =   1;
+			lEye.rv =   0;
+			rEye.rv =   0;
+			lEye.r  = top.r / P / P;
+			rEye.r  = top.r / P / P;
+		lEye.d -= H[h++] / 255.0 * PI / 10.0;
+			rEye.d += H[h++] / 255.0 * PI / 10.0;
+			
+			var ed:Number = 1.0-(max_av - Math.abs(head.av)) / max_av;  
+			var edx:Number = dy * ed * (head.av > 0 ? 1 : -1);
+			var edy:Number =-dx * ed * (head.av > 0 ? 1 : -1);
+			
+			lEye.p.x +=( dy/1.5 - dx + edx)* head.r / P ;
+			lEye.p.y +=(-dx/1.5 - dy + edy)* head.r / P ;
+			rEye.p.x +=(-dy/1.5 - dx + edx)* head.r / P ;
+			rEye.p.y +=( dx/1.5 - dy + edy)* head.r / P ;
+			lEye.cl = 0xFFFFFF;
+			rEye.cl = 0xFFFFFF;
+			
+			drawArc(g, lEye);
+			drawArc(g, rEye);
+			
+			lEye.cl = 0;
+			rEye.cl = 0;
+			
+			lEye.p.x -= edx * lEye.r;
+			lEye.p.y -= edy * lEye.r;
+			rEye.p.x -= edx * rEye.r;
+			rEye.p.y -= edy * rEye.r;
+			
+			lEye.r /= P*P;
+			rEye.r /= P*P;
+			
+			drawArc(g, lEye);
+			drawArc(g, rEye);
+		
 			var lEar:Object = clone(head);
 			var rEar:Object = clone(head);
-			lEar.sc =   7;
-			rEar.sc =   7;
+			lEar.sc =   5;
+			rEar.sc =   5;
 			lEar.v  =   5;
 			rEar.v  =   5;
 			lEar.rv = 0.5;
 			rEar.rv = 0.5;
-			lEar.r  = top.r / 3.0;
-			rEar.r  = top.r / 3.0;
+			lEar.r  = top.r / 2.0;
+			rEar.r  = top.r / 2.0;
+			lEar.d -= H[h++] / 255.0 * PI / 10.0;
+			rEar.d += H[h++] / 255.0 * PI / 10.0;
 			
-			dx = head.t.x / head.t.length;
-			dy = head.t.y / head.t.length;
-
 			lEar.p.x +=( dy + dx )* head.r / P ;
 			lEar.p.y +=(-dx + dy )* head.r / P ;
 			rEar.p.x +=(-dy + dx )* head.r / P ;
 			rEar.p.y +=( dx + dy )* head.r / P ;
-	
+			
 			drawArc(g, lEar);
 			drawArc(g, rEar);
+			
 			drawArc(g, lEar);
 			drawArc(g, rEar);
+			
 			
 		}
 		
@@ -233,7 +311,8 @@ package
 		// r  - start radius
 		// rv - radius velocity
 		// ra - radius acceleration
-		// sc - steps counter  
+		// sc - steps counter
+		// cl - color
 		private function drawArc(g:Graphics, o:Object ):Object { 
 			
 			if (!o.p ) o.p  = new Point;
@@ -246,10 +325,11 @@ package
 			if (!o.rv) o.rv =  0;
 			if (!o.ra) o.ra =  0;
 			if (!o.sc) o.sc = 10;
+			if (!o.cl) o.cl =  0;
 			
 			for (var i:uint = 0; i < o.sc; i++ ) {
-				
-				g.beginFill(0);
+
+				g.beginFill(o.cl);
 				g.drawCircle(o.p.x, o.p.y, o.r);
 				g.endFill();
 				
